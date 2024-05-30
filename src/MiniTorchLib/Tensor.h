@@ -2,7 +2,7 @@
 #define TENSOR_H
 
 #include <iostream>
-#include <cassert>
+#include <vector>
 
 typedef struct Tensor
 {
@@ -15,6 +15,8 @@ typedef struct Tensor
 };
 
 Tensor* create_tensor(float* data, int* shape, int ndim);
+Tensor* create_tensor(const std::vector<float>& data, const std::vector<int>& shape, int ndim);
+Tensor* add_tensor(Tensor* tensor1, Tensor* tensor2);
 float get_item(Tensor* tensor, int* indicies);
 
 #endif

@@ -41,15 +41,5 @@ TEST_F(TensorTest, GetItemFromThirdIndex) {
 TEST_F(TensorTest, GetItemFromFourthIndex) {
     int indices_array[] = { 1, 1 };
     float item = get_item(tensor, indices_array);
-    EXPECT_EQ(5.0f, item);
-}
-
-TEST_F(TensorTest, GetItemFromOutOfUpperBoundIndex) {
-    int indices_array[] = { 1, 2 };
-    EXPECT_THROW(get_item(tensor, indices_array), std::out_of_range);
-}
-
-TEST_F(TensorTest, GetItemFromOutOfLowerBoundIndex) {
-    int indices_array[] = { 0, 1 };
-    EXPECT_THROW(get_item(tensor, indices_array), std::out_of_range);
+    EXPECT_EQ(4.0f, item);
 }

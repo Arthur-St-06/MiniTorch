@@ -9,6 +9,7 @@ add_executable(${PROJECT_NAME} MiniTorch.cpp)
 
 add_subdirectory(MiniTorchLib)
 add_subdirectory(MiniTorchLib_Tests)
+add_subdirectory(PythonWrapper)
 
 target_link_libraries(${PROJECT_NAME} MiniTorchLib)
 
@@ -16,3 +17,4 @@ target_link_libraries(${PROJECT_NAME} MiniTorchLib)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET MiniTorchLib_Tests gmock gmock_main gtest gtest_main PROPERTY FOLDER "UnitTests")
 set_property(TARGET MiniTorch MiniTorchLib PROPERTY FOLDER "Core")
+set_property(TARGET PythonWrapper PROPERTY FOLDER "PythonWrapper")
