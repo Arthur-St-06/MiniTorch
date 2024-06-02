@@ -1,11 +1,12 @@
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include <pybind11/stl.h> // For vector handling
 
 #include "../MiniTorchLib/Tensor.h"
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(PythonWrapper, m) {
+PYBIND11_MODULE(PythonWrapper, m)
+{
     py::class_<Tensor>(m, "Tensor")
         .def(py::init<>())
         .def_readwrite("data", &Tensor::data)
@@ -15,7 +16,10 @@ PYBIND11_MODULE(PythonWrapper, m) {
         .def_readwrite("size", &Tensor::size)
         .def_readwrite("device", &Tensor::device);
 
-    m.def("create_tensor", [](const std::vector<float>& data, const std::vector<int>& shape, int ndim) {
-        return create_tensor(data, shape, ndim);
-        }, py::return_value_policy::take_ownership);
+
+    Tensor* create_tensor(const std::vector<float>&data, const std::vector<int>&shape, int ndim);
+    m.def("create_tensor", &create_tensor);
+
+    Tensor* add_tensor(Tensor* tensor1, Tensor* tensor2);
+    m.def("add", &add_tensor);
 }

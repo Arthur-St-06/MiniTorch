@@ -4,12 +4,8 @@
 Tensor* create_tensor(float* data, int* shape, int ndim)
 {
     // Allocate memory for 1 tensor and get its pointer
-    Tensor* tensor = (Tensor*)malloc(sizeof(Tensor));
-    if (tensor == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(1);
-    }
+    Tensor* tensor = new Tensor;
+
     tensor->data = data;
     tensor->shape = shape;
     tensor->ndim = ndim;
@@ -22,12 +18,7 @@ Tensor* create_tensor(float* data, int* shape, int ndim)
     }
 
     // Allocate memory for strides which has "ndim" elements
-    tensor->strides = (int*)malloc(ndim * sizeof(int));
-    if (tensor->strides == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(1);
-    }
+    tensor->strides = new int[ndim];
 
     // Calculate stride for each dimension
     int stride = 1;
@@ -43,28 +34,13 @@ Tensor* create_tensor(float* data, int* shape, int ndim)
 Tensor* create_tensor(const std::vector<float>& data, const std::vector<int>& shape, int ndim)
 {
     // Allocate memory for 1 tensor and get its pointer
-    Tensor* tensor = (Tensor*)malloc(sizeof(Tensor));
-    if (tensor == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(1);
-    }
+    Tensor* tensor = new Tensor;
 
-    tensor->data = (float*)malloc(data.size() * sizeof(float));
-    if (tensor->data == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(1);
-    }
+    tensor->data = new float[data.size()];
     // Copies data of vector to the tensor from the beginning to end
     std::copy(data.begin(), data.end(), tensor->data);
 
-    tensor->shape = (int*)malloc(shape.size() * sizeof(int));
-    if (tensor->shape == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(1);
-    }
+    tensor->shape = new int[shape.size()];
     std::copy(shape.begin(), shape.end(), tensor->shape);
 
     tensor->ndim = ndim;
@@ -77,12 +53,7 @@ Tensor* create_tensor(const std::vector<float>& data, const std::vector<int>& sh
     }
 
     // Allocate memory for strides which has "ndim" elements
-    tensor->strides = (int*)malloc(ndim * sizeof(int));
-    if (tensor->strides == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(1);
-    }
+    tensor->strides = new int[ndim];
 
     // Calculate stride for each dimension
     int stride = 1;
@@ -104,12 +75,7 @@ Tensor* add_tensor(Tensor* tensor1, Tensor* tensor2)
     }
 
     int ndim = tensor1->ndim;
-    int* shape = (int*)malloc(ndim * sizeof(int));
-    if (shape == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed");
-        exit(1);
-    }
+    int* shape = new int[ndim];
 
     for (int i = 0; i < ndim; i++)
     {
@@ -121,12 +87,8 @@ Tensor* add_tensor(Tensor* tensor1, Tensor* tensor2)
         shape[i] = tensor1->shape[i];
     }
 
-    float* result_data = (float*)malloc(tensor1->size * sizeof(float));
-    if (result_data == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(1);
-    }
+    float* result_data = new float[tensor1->size];
+
     add_tensor_cpu(tensor1, tensor2, result_data);
 
     return create_tensor(result_data, shape, ndim);

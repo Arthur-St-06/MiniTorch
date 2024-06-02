@@ -5,9 +5,9 @@
 class TensorTest : public ::testing::Test {
 protected:
     Tensor* tensor;
-    float data_array[4] = { 1.0f, 2.0f,
-                            3.0f, 4.0f };
-    int shape_array[2] = { 2, 2 };
+    float* data_array = new float[4] { 1.0f, 2.0f,
+                                       3.0f, 4.0f };
+    int* shape_array = new int[2] { 2, 2 };
     int ndim = 2;
 
     void SetUp() override {
@@ -15,8 +15,7 @@ protected:
     }
 
     void TearDown() override {
-        free(tensor->strides);
-        free(tensor);
+        delete tensor;
     }
 };
 

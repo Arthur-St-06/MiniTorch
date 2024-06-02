@@ -12,6 +12,24 @@ typedef struct Tensor
     int ndim;
     int size;
     char* device;
+
+    Tensor()
+    {
+        data = nullptr;
+        strides = nullptr;
+        shape = nullptr;
+        ndim = 0;
+        size = 0;
+        device = nullptr;
+    }
+
+    ~Tensor()
+    {
+        delete[] data;
+        delete[] strides;
+        delete[] shape;
+        delete device;
+    }
 };
 
 Tensor* create_tensor(float* data, int* shape, int ndim);
