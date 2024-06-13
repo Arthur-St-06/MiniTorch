@@ -1,5 +1,5 @@
 #pragma once
 
-#include "Tensor.h"
+#include <immintrin.h>
 
-void add_tensor_cpu(Tensor* tensor1, Tensor* tensor2, float* result_data);
+void add_tensor_cpu(float* data1, float* data2, float* result_data, int size);

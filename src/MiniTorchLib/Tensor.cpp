@@ -1,72 +1,69 @@
 #include "Tensor.h"
 #include "CPUTensorFunctions.h"
 
-Tensor* create_tensor(float* data, int* shape, int ndim)
-{
-    // Allocate memory for 1 tensor and get its pointer
-    Tensor* tensor = new Tensor;
+#include <chrono>
 
-    tensor->data = data;
-    tensor->shape = shape;
-    tensor->ndim = ndim;
+Tensor::Tensor(float* _data, int* _shape, int _ndim)
+{
+    data = _data;
+    shape = _shape;
+    ndim = _ndim;
 
     // Calculate total amount of elements in the tensor
-    tensor->size = 1;
+    size = 1;
     for (int i = 0; i < ndim; i++)
     {
-        tensor->size *= shape[i];
+        size *= shape[i];
     }
 
     // Allocate memory for strides which has "ndim" elements
-    tensor->strides = new int[ndim];
+    strides = new int[ndim];
 
     // Calculate stride for each dimension
     int stride = 1;
     for (int i = ndim - 1; i >= 0; i--)
     {
-        tensor->strides[i] = stride;
+        strides[i] = stride;
         stride *= shape[i];
     }
 
-    return tensor;
+    device = nullptr;
 }
 
-Tensor* create_tensor(const std::vector<float>& data, const std::vector<int>& shape, int ndim)
+Tensor::Tensor(const std::vector<float>& _data, const std::vector<int>& _shape, int _ndim)
 {
-    // Allocate memory for 1 tensor and get its pointer
-    Tensor* tensor = new Tensor;
+    std::cout << "creating a tensor" << std::endl;
 
-    tensor->data = new float[data.size()];
+    data = new float[_data.size()];
     // Copies data of vector to the tensor from the beginning to end
-    std::copy(data.begin(), data.end(), tensor->data);
+    std::copy(_data.begin(), _data.end(), data);
 
-    tensor->shape = new int[shape.size()];
-    std::copy(shape.begin(), shape.end(), tensor->shape);
+    shape = new int[_shape.size()];
+    std::copy(_shape.begin(), _shape.end(), shape);
 
-    tensor->ndim = ndim;
+    ndim = _ndim;
 
     // Calculate total amount of elements in the tensor
-    tensor->size = 1;
+    size = 1;
     for (int i = 0; i < ndim; i++)
     {
-        tensor->size *= shape[i];
+        size *= shape[i];
     }
 
     // Allocate memory for strides which has "ndim" elements
-    tensor->strides = new int[ndim];
+    strides = new int[ndim];
 
     // Calculate stride for each dimension
     int stride = 1;
     for (int i = ndim - 1; i >= 0; i--)
     {
-        tensor->strides[i] = stride;
+        strides[i] = stride;
         stride *= shape[i];
     }
-
-    return tensor;
+    device = nullptr;
 }
 
-Tensor* add_tensor(Tensor* tensor1, Tensor* tensor2)
+Tensor* Tensor::add_tensors(Tensor* tensor1, Tensor* tensor2)
 {
     if (tensor1->ndim != tensor2->ndim)
     {
@@ -89,28 +86,28 @@ Tensor* add_tensor(Tensor* tensor1, Tensor* tensor2)
 
     float* result_data = new float[tensor1->size];
 
-    add_tensor_cpu(tensor1, tensor2, result_data);
+    add_tensor_cpu(tensor1->data, tensor2->data, result_data, tensor1->size);
 
-    return create_tensor(result_data, shape, ndim);
+    return new Tensor(result_data, shape, ndim);
 }
 
-float get_item(Tensor* tensor, int* indicies)
-{
-    // Convert n-dimensional indicies to 1 index to be used with a 1d array
-    int index = 0;
-    for (int i = 0; i < tensor->ndim; i++)
-    {
-        index += indicies[i] * tensor->strides[i];
-    }
-
-    if ((index >= tensor->size) || (index < 0))
-    {
-        fprintf(stderr, "Index should be less than the size of tensor and greater than 0, current index and shape are: %d, %d\n", index, tensor->size);
-        exit(1);
-    }
-
-    float result;
-    result = tensor->data[index];
-
-    return result;
-}
+//float Tensor::get_item(Tensor* tensor, int* indicies)
+//{
+//    // Convert n-dimensional indicies to 1 index to be used with a 1d array
+//    int index = 0;
+//    for (int i = 0; i < tensor->ndim; i++)
+//    {
+//        index += indicies[i] * tensor->strides[i];
+//    }
+//
+//    if ((index >= tensor->size) || (index < 0))
+//    {
+//        fprintf(stderr, "Index should be less than the size of tensor and greater than 0, current index and shape are: %d, %d\n", index, tensor->size);
+//        exit(1);
+//    }
+//
+//    float result;
+//    result = tensor->data[index];
+//
+//    return result;
+//}
