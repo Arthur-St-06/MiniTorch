@@ -47,11 +47,11 @@ int main()
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     
     std::cout << "Time taken by function: " << duration.count() << " microseconds" << std::endl;
-    //
-    ////int indices_array[] = { 999, 999 };
-    ////float sum_at_index = get_item(result_tensor, indices_array);
-    ////std::cout << sum_at_index;
-    //
+    
+    int indices_array[] = { 999, 999 };
+    float sum_at_index = result_tensor->get_item(indices_array);
+    std::cout << sum_at_index;
+    
     delete tensor1;
     delete tensor2;
     //delete result_tensor;

@@ -32,8 +32,6 @@ Tensor::Tensor(float* _data, int* _shape, int _ndim)
 
 Tensor::Tensor(const std::vector<float>& _data, const std::vector<int>& _shape, int _ndim)
 {
-    std::cout << "creating a tensor" << std::endl;
-
     data = new float[_data.size()];
     // Copies data of vector to the tensor from the beginning to end
     std::copy(_data.begin(), _data.end(), data);
@@ -91,23 +89,44 @@ Tensor* Tensor::add_tensors(Tensor* tensor1, Tensor* tensor2)
     return new Tensor(result_data, shape, ndim);
 }
 
-//float Tensor::get_item(Tensor* tensor, int* indicies)
-//{
-//    // Convert n-dimensional indicies to 1 index to be used with a 1d array
-//    int index = 0;
-//    for (int i = 0; i < tensor->ndim; i++)
-//    {
-//        index += indicies[i] * tensor->strides[i];
-//    }
-//
-//    if ((index >= tensor->size) || (index < 0))
-//    {
-//        fprintf(stderr, "Index should be less than the size of tensor and greater than 0, current index and shape are: %d, %d\n", index, tensor->size);
-//        exit(1);
-//    }
-//
-//    float result;
-//    result = tensor->data[index];
-//
-//    return result;
-//}
+float Tensor::get_item(int* indicies)
+{
+    // Convert n-dimensional indicies to 1 index to be used with a 1d array
+    int index = 0;
+    for (int i = 0; i < ndim; i++)
+    {
+        index += indicies[i] * strides[i];
+    }
+
+    if ((index >= size) || (index < 0))
+    {
+        fprintf(stderr, "Index should be less than the size of tensor and greater than 0, current index and size are: %d, %d\n", index, size);
+        exit(1);
+    }
+
+    float result;
+    result = data[index];
+
+    return result;
+}
+
+float Tensor::get_item(std::vector<int> indicies)
+{
+    // Convert n-dimensional indicies to 1 index to be used with a 1d array
+    int index = 0;
+    for (int i = 0; i < ndim; i++)
+    {
+        index += indicies[i] * strides[i];
+    }
+
+    if ((index >= size) || (index < 0))
+    {
+        fprintf(stderr, "Index should be less than the size of tensor and greater than 0, current index and shape are: %d, %d\n", index, size);
+        exit(1);
+    }
+
+    float result;
+    result = data[index];
+
+    return result;
+}

@@ -16,7 +16,8 @@ public:
     char* device;
 
     static Tensor* add_tensors(Tensor* tensor1, Tensor* tensor2);
-    //float get_item(Tensor* tensor, int* indicies);
+    float get_item(int* indicies);
+    float get_item(std::vector<int> indicies);
 
     Tensor(float* data, int* shape, int ndim);
     Tensor(const std::vector<float>& data, const std::vector<int>& shape, int ndim);
