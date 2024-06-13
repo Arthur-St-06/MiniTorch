@@ -109,24 +109,3 @@ float Tensor::get_item(int* indicies)
 
     return result;
 }
-
-float Tensor::get_item(std::vector<int> indicies)
-{
-    // Convert n-dimensional indicies to 1 index to be used with a 1d array
-    int index = 0;
-    for (int i = 0; i < ndim; i++)
-    {
-        index += indicies[i] * strides[i];
-    }
-
-    if ((index >= size) || (index < 0))
-    {
-        fprintf(stderr, "Index should be less than the size of tensor and greater than 0, current index and shape are: %d, %d\n", index, size);
-        exit(1);
-    }
-
-    float result;
-    result = data[index];
-
-    return result;
-}
