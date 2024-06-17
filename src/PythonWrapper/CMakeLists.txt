@@ -9,4 +9,4 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(pybind11)
 
-pybind11_add_module(PythonWrapper wrappers.cpp ../MiniTorchLib/Tensor.cpp ../MiniTorchLib/CPUTensorFunctions.cpp)
+pybind11_add_module(PythonWrapper wrappers.cpp ../MiniTorchLib/Tensor.cu ../MiniTorchLib/CPUTensorFunctions.cpp ../MiniTorchLib/cuda_support.cu ../MiniTorchLib/cuda_kernels.cu)

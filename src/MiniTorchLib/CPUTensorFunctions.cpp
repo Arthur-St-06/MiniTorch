@@ -1,6 +1,6 @@
 #include "CPUTensorFunctions.h"
 
-void add_tensor_cpu(float* data1, float* data2, float* result_data, int size)
+void add_cpu(float* data1, float* data2, float* result_data, int size)
 {
 #pragma omp parallel for
     for (int i = 0; i < size; i++)

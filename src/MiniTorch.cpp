@@ -15,7 +15,7 @@ int main()
     #endif
     
 
-    const size_t data_size = 8000000;
+    const size_t data_size = 100000 * 10000;
 
     //float* first_tensor_data_array = new float[data_size];
     //float* second_tensor_data_array = new float[data_size];
@@ -35,22 +35,28 @@ int main()
 
     std::vector<int> shape = { data_size };
    
-    Tensor* tensor1 = new Tensor(data_vector, shape, 1);
+    Tensor* tensor1 = new Tensor(data_vector, shape, 1, "cuda");
 
-    Tensor* tensor2 = new Tensor(data_vector, shape, 1);
-    
+    Tensor* tensor2 = new Tensor(data_vector, shape, 1, "cuda");
+
     auto start = std::chrono::high_resolution_clock::now();
     
-    Tensor* result_tensor = Tensor::add_tensors(tensor1, tensor2);
-    
+    for (int i = 0; i < 100; i++)
+    {
+        Tensor* result_tensor = Tensor::add_tensors(tensor1, tensor2);
+        delete result_tensor;
+    }
+
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     
-    std::cout << "Time taken by function: " << duration.count() << " microseconds" << std::endl;
+    std::cout << "Time taken by function: " << duration.count() / 100 << " microseconds" << std::endl;
     
-    int indices_array[] = { 999, 999 };
-    float sum_at_index = result_tensor->get_item(indices_array);
-    std::cout << sum_at_index;
+    int indices_array[] = { 1 };
+
+    
+    //float sum_at_index = result_tensor->get_item(indices_array);
+    //std::cout << sum_at_index;
     
     delete tensor1;
     delete tensor2;
