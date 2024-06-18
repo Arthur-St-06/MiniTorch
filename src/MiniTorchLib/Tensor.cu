@@ -21,7 +21,7 @@ Tensor::Tensor(float* _data, int* _shape, int _ndim, std::string _device)
     device = _device;
     data = _data;
     // If device change is needed
-    if (_device == "cuda" && checkPointerLocation(data) == "cpu") data = data_to_cuda(data);
+    if (_device == "cuda" && check_pointer_location(data) == "cpu") data = data_to_cuda(data);
 
     // Allocate memory for strides which has "ndim" elements
     strides = new int[ndim];
@@ -35,14 +35,19 @@ Tensor::Tensor(float* _data, int* _shape, int _ndim, std::string _device)
     }
 }
 
-std::string Tensor::checkPointerLocation(void* ptr)
+std::string Tensor::check_pointer_location(void* _ptr)
 {
     cudaPointerAttributes attributes;
-    cudaError_t error = cudaPointerGetAttributes(&attributes, ptr);
+    cudaError_t error = cudaPointerGetAttributes(&attributes, _ptr);
     if (error == cudaSuccess)
     {
         if (attributes.type == cudaMemoryTypeDevice) return "cuda";
-        else if (attributes.type == cudaMemoryTypeHost) return "cpu";
+        else if (attributes.type == cudaMemoryTypeHost || attributes.type == cudaMemoryTypeUnregistered) return "cpu";
+        else
+        {
+            printf("Can't determine poiner location.\n");
+            exit(EXIT_FAILURE);
+        }
     }
     else
     {
@@ -51,11 +56,11 @@ std::string Tensor::checkPointerLocation(void* ptr)
     }
 }
 
-float* Tensor::data_to_cuda(float* data)
+float* Tensor::data_to_cuda(float* _data)
 {
     float* cuda_data;
     cudaMalloc((void**)&cuda_data, size * sizeof(float));
-    cudaMemcpy(cuda_data, data, size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(cuda_data, _data, size * sizeof(float), cudaMemcpyHostToDevice);
 
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
@@ -63,18 +68,18 @@ float* Tensor::data_to_cuda(float* data)
         exit(EXIT_FAILURE);
     }
 
-    delete[] data;
+    delete[] _data;
 
     printf("sent tensor to %s\n", device.c_str());
 
     return cuda_data;
 }
 
-float* Tensor::data_to_cpu(float* data, bool delete_original)
+float* Tensor::data_to_cpu(float* _data, bool _delete_original)
 {
     float* cpu_data = new float[size];
-    cudaMemcpy(cpu_data, data, size * sizeof(float), cudaMemcpyDeviceToHost);
-    if(delete_original) cudaFree(data);
+    cudaMemcpy(cpu_data, _data, size * sizeof(float), cudaMemcpyDeviceToHost);
+    if(_delete_original) cudaFree(_data);
 
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess)
@@ -118,42 +123,42 @@ Tensor::Tensor(const std::vector<float>& _data, const std::vector<int>& _shape, 
     }
 }
 
-Tensor* Tensor::add_tensors(Tensor* tensor1, Tensor* tensor2)
+Tensor* Tensor::add_tensors(Tensor* _tensor1, Tensor* _tensor2)
 {
-    if (tensor1->device != tensor2->device)
+    if (_tensor1->device != _tensor2->device)
     {
-        printf("Tensors must be on the same device. Current devices: %s and %s\n", tensor1->device.c_str(), tensor1->device.c_str());
+        printf("Tensors must be on the same device. Current devices: %s and %s\n", _tensor1->device.c_str(), _tensor2->device.c_str());
         exit(EXIT_FAILURE);
     }
 
-    std::string device = tensor1->device;
+    std::string device = _tensor1->device;
 
-    if (tensor1->ndim != tensor2->ndim)
+    if (_tensor1->ndim != _tensor2->ndim)
     {
-        printf("Tensors must have the same number of dimensions for addition. Current dimensions: %d and %d\n", tensor1->ndim, tensor2->ndim);
+        printf("Tensors must have the same number of dimensions for addition. Current dimensions: %d and %d\n", _tensor1->ndim, _tensor2->ndim);
         exit(EXIT_FAILURE);
     }
 
-    int ndim = tensor1->ndim;
+    int ndim = _tensor1->ndim;
     int* shape = new int[ndim];
 
     for (int i = 0; i < ndim; i++)
     {
-        if (tensor1->shape[i] != tensor2->shape[i])
+        if (_tensor1->shape[i] != _tensor2->shape[i])
         {
-            printf("Tensors must have the same shape for addition. Current shape at index %d: %d and %d\n", i, tensor1->shape[i], tensor2->shape[i]);
+            printf("Tensors must have the same shape for addition. Current shape at index %d: %d and %d\n", i, _tensor1->shape[i], _tensor2->shape[i]);
             exit(EXIT_FAILURE);
         }
-        shape[i] = tensor1->shape[i];
+        shape[i] = _tensor1->shape[i];
     }
 
     if (device == "cuda")
     {
         float* result_data;
-        cudaMalloc((void**)&result_data, tensor1->size * sizeof(float));
+        cudaMalloc((void**)&result_data, _tensor1->size * sizeof(float));
 
-        int num_blocks = (tensor1->size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-        add_cuda <<<num_blocks, THREADS_PER_BLOCK>>> (tensor1->data, tensor2->data, result_data, tensor1->size);
+        int num_blocks = (_tensor1->size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+        add_cuda <<<num_blocks, THREADS_PER_BLOCK>>> (_tensor1->data, _tensor2->data, result_data, _tensor1->size);
 
         cudaError_t error = cudaGetLastError();
         if (error != cudaSuccess)
@@ -167,19 +172,19 @@ Tensor* Tensor::add_tensors(Tensor* tensor1, Tensor* tensor2)
     }
     else
     {
-        float* result_data = new float[tensor1->size];
-        add_cpu(tensor1->data, tensor2->data, result_data, tensor1->size);
+        float* result_data = new float[_tensor1->size];
+        add_cpu(_tensor1->data, _tensor2->data, result_data, _tensor1->size);
         return new Tensor(result_data, shape, ndim, device);
     }
 }
 
-float Tensor::get_item(int* indicies)
+float Tensor::get_item(int* _indicies)
 {
     // Convert n-dimensional indicies to 1 index to be used with a 1d array
     int index = 0;
     for (int i = 0; i < ndim; i++)
     {
-        index += indicies[i] * strides[i];
+        index += _indicies[i] * strides[i];
     }
 
     if ((index >= size) || (index < 0))

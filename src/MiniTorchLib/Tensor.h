@@ -14,8 +14,8 @@ public:
     int size;
     std::string device;
     
-    Tensor(float* data, int* shape, int ndim, std::string _device = "cpu");
-    Tensor(const std::vector<float>& data, const std::vector<int>& shape, int ndim, std::string _device = "cpu");
+    Tensor(float* _data, int* _shape, int _ndim, std::string _device = "cpu");
+    Tensor(const std::vector<float>& _data, const std::vector<int>& _shape, int _ndim, std::string _device = "cpu");
 
     ~Tensor()
     {
@@ -32,13 +32,16 @@ public:
         delete[] shape;
     }
 
-    static Tensor* add_tensors(Tensor* tensor1, Tensor* tensor2);
+    static Tensor* add_tensors(Tensor* _tensor1, Tensor* _tensor2);
+    //static Tensor* arange(int _size, );
 
-    float get_item(int* indicies);
-    Tensor* to(std::string device);
-    float* data_to_cuda(float* data);
-    float* data_to_cpu(float* data, bool delete_original = true);
+    float get_item(int* _indicies);
+    Tensor* to(std::string _device);
+    float* data_to_cuda(float* _data);
+    // Don't delete data on cuda if copying for printing
+    float* data_to_cpu(float* _data, bool _delete_original = true);
 
 private:
-    std::string checkPointerLocation(void* ptr);
+    // Returns "cpu" or "cuda" depending where ptr is store
+    std::string check_pointer_location(void* _ptr);
 };
