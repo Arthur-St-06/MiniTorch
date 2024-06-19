@@ -1,8 +1,9 @@
-#include <pybind11/pybind11.h>
+//#include <pybind11/pybind11.h>
 #include <pybind11/stl.h> // For vector handling
 
 #include "../MiniTorchLib/Tensor.h"
 #include "../MiniTorchLib/cuda_support.h"
+#include "../MiniTorchLib/errors_support.h"
 
 namespace py = pybind11;
 
@@ -22,8 +23,7 @@ float python_get_item(Tensor& t, py::object obj_indicies)
 
         if (indicies_tuple.size() > t.ndim)
         {
-            printf("Too many indicies for tensor of dimension %d", t.ndim);
-            exit(EXIT_FAILURE);
+            throw_error("Too many indicies for tensor of dimension %d", t.ndim);
         }
 
         int* indicies = new int[indicies_tuple.size()];
@@ -36,21 +36,19 @@ float python_get_item(Tensor& t, py::object obj_indicies)
             }
             else
             {
-                printf("Indicies should be integers\n");
-                exit(EXIT_FAILURE);
+                throw_error("Indicies should be integers\n");
             }
         }
         return t.get_item(indicies);
     }
     else
     {
-        printf("Indicies should be integers");
-        exit(EXIT_FAILURE);
+        throw_error("Indicies should be integers");
     }
 }
 
 /////////////////////////////
-// Convert multidimensional py::list to a float*
+// Initializing tensors using just data with arbitrary number of dimensions
 /////////////////////////////
 
 int count_elements(const py::list& list)
@@ -86,8 +84,7 @@ void flatten_list(const py::list& _list, float* _data, int& _index)
             }
             else
             {
-                printf("List should contain numerical values\n");
-                exit(EXIT_FAILURE);
+                throw_error("List should contain numerical values\n");
             }
         }
     }
@@ -121,20 +118,17 @@ void verify_shape(const py::object& _obj, std::vector<int>& _shape, int _level)
 
     if (_shape.size() <= _level)
     {
-        printf("Expected a list\n");
-        exit(EXIT_FAILURE);
+        throw_error("Expected a list\n");
     }
     if (_shape[_level] != list.size())
     {
-        printf("Amount of elements should be equal at all levels. Current number of elements in level %d: %d and %d\n", _level, _shape[_level], list.size());
-        exit(EXIT_FAILURE);
+        throw_error("Amount of elements should be equal at all levels. Current number of elements in level %d: %d and %d\n", _level, _shape[_level], list.size());
     }
 
-    _level++;
     for (const auto& inner_list : list)
     {
         py::object obj = py::reinterpret_borrow<py::object>(inner_list);
-        verify_shape(obj, _shape, _level);
+        verify_shape(obj, _shape, _level++);
     }
 }
 
@@ -175,7 +169,6 @@ PYBIND11_MODULE(PythonWrapper, m)
     /////////////////////////////
 
     py::class_<Tensor>(m, "tensor")
-        //.def(py::init<const std::vector<float>&, const std::vector<int>&, int, std::string>())
         .def(py::init([](const py::list& list, std::string device)
             {
                 return tensor_initializer(list, device);
