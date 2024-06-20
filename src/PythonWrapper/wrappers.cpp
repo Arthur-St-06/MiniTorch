@@ -172,7 +172,7 @@ PYBIND11_MODULE(PythonWrapper, m)
         .def(py::init([](const py::list& list, std::string device)
             {
                 return tensor_initializer(list, device);
-            }))
+            }), py::arg("list"), py::arg("device") = "cpu")
         .def_readwrite("data", &Tensor::data)
         .def_readwrite("strides", &Tensor::strides)
         .def_readwrite("shape", &Tensor::shape)
@@ -182,10 +182,7 @@ PYBIND11_MODULE(PythonWrapper, m)
         .def("to", &Tensor::to)
         .def("__getitem__", &python_get_item);
 
-    m.def("add", [](Tensor* tensor1, Tensor* tensor2)
-        {
-            return Tensor::add_tensors(tensor1, tensor2);
-        });
+    m.def("add", &Tensor::add_tensors);
 
     /////////////////////////////
     // Cuda
