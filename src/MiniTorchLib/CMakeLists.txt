@@ -3,8 +3,8 @@ project(MiniTorchLib)
 set(MiniTorchLib_Src
 	Tensor.h
 	Tensor.cu
-	CPUTensorFunctions.h
-	CPUTensorFunctions.cpp
+	cpu_kernels.h
+	cpu_kernels.cpp
 	cuda_support.h
 	cuda_support.cu
 	cuda_kernels.h

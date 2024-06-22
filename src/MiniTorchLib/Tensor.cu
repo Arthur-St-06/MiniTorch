@@ -1,11 +1,11 @@
 #include <chrono>
 
 #include "Tensor.h"
-#include "CPUTensorFunctions.h"
+#include "cpu_kernels.h"
 #include "cuda_kernels.h"
 #include "errors_support.h"
 
-#define THREADS_PER_BLOCK 64
+#define THREADS_PER_BLOCK 64*100000
 
 Tensor::Tensor(float* _data, int* _shape, int _ndim, std::string _device)
 {
@@ -23,7 +23,10 @@ Tensor::Tensor(float* _data, int* _shape, int _ndim, std::string _device)
     device = _device;
     data = _data;
     // If device change is needed
-    if (_device == "cuda" && check_pointer_location(data) == "cpu") data = data_to_cuda(data);
+    if (_device == "cuda" && check_pointer_location(data) == "cpu")
+    {
+        data = data_to_cuda(data);
+    }
 
     // Allocate memory for strides which has "ndim" elements
     strides = new int[ndim];
@@ -37,105 +40,37 @@ Tensor::Tensor(float* _data, int* _shape, int _ndim, std::string _device)
     }
 }
 
-std::string Tensor::check_pointer_location(void* _ptr)
+Tensor::~Tensor()
 {
-    cudaPointerAttributes attributes;
-    cudaError_t error = cudaPointerGetAttributes(&attributes, _ptr);
-    if (error == cudaSuccess)
+    if (device == "cuda")
     {
-        if (attributes.type == cudaMemoryTypeDevice) return "cuda";
-        else if (attributes.type == cudaMemoryTypeHost || attributes.type == cudaMemoryTypeUnregistered) return "cpu";
-        else
-        {
-            throw_error("Can't determine poiner location.");
-        }
+        cuda_check(cudaFree(data));
     }
-    else
+    else if (device == "cpu")
     {
-        throw_error("Cuda error: %s\n", cudaGetErrorString(error));
-    }
-}
-
-float* Tensor::data_to_cuda(float* _data)
-{
-    float* cuda_data;
-    cudaMalloc((void**)&cuda_data, size * sizeof(float));
-    cudaMemcpy(cuda_data, _data, size * sizeof(float), cudaMemcpyHostToDevice);
-
-    cudaError_t error = cudaGetLastError();
-    if (error != cudaSuccess) {
-        throw_error("Cuda error: %s\n", cudaGetErrorString(error));
+        delete[] data;
     }
 
-    delete[] _data;
+    delete[] strides;
+    delete[] shape;
 
-    printf("sent tensor to %s\n", device.c_str());
-
-    return cuda_data;
-}
-
-float* Tensor::data_to_cpu(float* _data, bool _delete_original)
-{
-    float* cpu_data = new float[size];
-    cudaMemcpy(cpu_data, _data, size * sizeof(float), cudaMemcpyDeviceToHost);
-    if(_delete_original) cudaFree(_data);
-
-    cudaError_t error = cudaGetLastError();
-    if (error != cudaSuccess)
-    {
-        throw_error("Cuda error: %s\n", cudaGetErrorString(error));
-    }
-
-    return cpu_data;
-}
-
-Tensor::Tensor(const std::vector<float>& _data, const std::vector<int>& _shape, int _ndim, std::string _device)
-{
-    shape = new int[_shape.size()];
-    std::copy(_shape.begin(), _shape.end(), shape);
-
-    ndim = _ndim;
-
-    // Calculate total amount of elements in the tensor
-    size = 1;
-    for (int i = 0; i < ndim; i++)
-    {
-        size *= shape[i];
-    }
-
-    device = _device;
-    data = new float[_data.size()];
-    // Copies data of vector to the tensor from the beginning to end
-    std::copy(_data.begin(), _data.end(), data);
-    if (_device == "cuda") data = data_to_cuda(data);
-
-    // Allocate memory for strides which has "ndim" elements
-    strides = new int[ndim];
-
-    // Calculate stride for each dimension
-    int stride = 1;
-    for (int i = ndim - 1; i >= 0; i--)
-    {
-        strides[i] = stride;
-        stride *= shape[i];
-    }
+    std::cout << "Tensor was deleted" << std::endl;
 }
 
 Tensor* Tensor::add_tensors(Tensor* _tensor1, Tensor* _tensor2)
 {
-    if (_tensor1->device != _tensor2->device)
-    {
-        throw_error("Tensors must be on the same device. Current devices: %s and %s\n", _tensor1->device.c_str(), _tensor2->device.c_str());
-    }
-
-    std::string device = _tensor1->device;
-
     if (_tensor1->ndim != _tensor2->ndim)
     {
         throw_error("Tensors must have the same number of dimensions for addition. Current dimensions: %d and %d\n", _tensor1->ndim, _tensor2->ndim);
     }
 
+    if (_tensor1->device != _tensor2->device)
+    {
+        throw_error("Tensors must be on the same device. Current devices: %s and %s\n", _tensor1->device.c_str(), _tensor2->device.c_str());
+    }
+
     int ndim = _tensor1->ndim;
+    std::string device = _tensor1->device;
     int* shape = new int[ndim];
 
     for (int i = 0; i < ndim; i++)
@@ -149,26 +84,50 @@ Tensor* Tensor::add_tensors(Tensor* _tensor1, Tensor* _tensor2)
 
     if (device == "cuda")
     {
-        float* result_data;
-        cudaMalloc((void**)&result_data, _tensor1->size * sizeof(float));
+        float* data;
+        cuda_check(cudaMalloc((void**)&data, _tensor1->size * sizeof(float)));
 
         int num_blocks = (_tensor1->size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-        add_cuda <<<num_blocks, THREADS_PER_BLOCK>>> (_tensor1->data, _tensor2->data, result_data, _tensor1->size);
+        add_cuda << <num_blocks, THREADS_PER_BLOCK >> > (_tensor1->data, _tensor2->data, data, _tensor1->size);
 
-        cudaError_t error = cudaGetLastError();
-        if (error != cudaSuccess)
-        {
-            throw_error("Cuda error: %s\n", cudaGetErrorString(error));
-        }
-
-        cudaDeviceSynchronize();
-        return new Tensor(result_data, shape, ndim, device);
+        cuda_check(cudaGetLastError());
+        cuda_check(cudaDeviceSynchronize());
+        return new Tensor(data, shape, ndim, device);
     }
     else
     {
-        float* result_data = new float[_tensor1->size];
-        add_cpu(_tensor1->data, _tensor2->data, result_data, _tensor1->size);
-        return new Tensor(result_data, shape, ndim, device);
+        float* data = new float[_tensor1->size];
+        add_cpu(_tensor1->data, _tensor2->data, data, _tensor1->size);
+        return new Tensor(data, shape, ndim, device);
+    }
+}
+
+Tensor* Tensor::arange(int _start, int _end, std::string _device)
+{
+    int start = _start;
+    int end = _end;
+    int size = end - start;
+    // Size and shape equal in 1d tensor
+    int* shape = new int[1];
+    shape[0] = size;
+
+    std::string device = _device;
+
+    if (_device == "cuda")
+    {
+        float* data;
+        cuda_check(cudaMalloc((void**)&data, size * sizeof(float)));
+
+        int num_blocks = (size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+        arange_cuda << <num_blocks, THREADS_PER_BLOCK >> > (data, start, size);
+        cuda_check(cudaGetLastError());
+        return new Tensor(data, shape, 1, device);
+    }
+    else
+    {
+        float* data = new float[size];
+        arange_cpu(data, start, size);
+        return new Tensor(data, shape, 1, device);
     }
 }
 
@@ -212,4 +171,54 @@ Tensor* Tensor::to(std::string _device)
         return new Tensor(data, shape, ndim, "cpu");
     }
     return this;
+}
+
+float* Tensor::data_to_cuda(float* _data)
+{
+    float* cuda_data;
+    cuda_check(cudaMalloc((void**)&cuda_data, size * sizeof(float)));
+    cuda_check(cudaMemcpy(cuda_data, _data, size * sizeof(float), cudaMemcpyHostToDevice));
+
+    delete[] _data;
+
+    printf("sent tensor to %s\n", device.c_str());
+
+    return cuda_data;
+}
+
+float* Tensor::data_to_cpu(float* _data, bool _delete_original)
+{
+    float* cpu_data = new float[size];
+    cuda_check(cudaMemcpy(cpu_data, _data, size * sizeof(float), cudaMemcpyDeviceToHost));
+    if (_delete_original)
+    {
+        cuda_check(cudaFree(_data));
+    }
+
+    return cpu_data;
+}
+
+std::string Tensor::check_pointer_location(void* _ptr)
+{
+    cudaPointerAttributes attributes;
+    cudaError_t error = cudaPointerGetAttributes(&attributes, _ptr);
+    if (error == cudaSuccess)
+    {
+        if (attributes.type == cudaMemoryTypeDevice)
+        {
+            return "cuda";
+        }
+        else if (attributes.type == cudaMemoryTypeHost || attributes.type == cudaMemoryTypeUnregistered)
+        {
+            return "cpu";
+        }
+        else
+        {
+            throw_error("Can't determine poiner location.");
+        }
+    }
+    else
+    {
+        throw_error("Cuda error: %s\n", cudaGetErrorString(error));
+    }
 }

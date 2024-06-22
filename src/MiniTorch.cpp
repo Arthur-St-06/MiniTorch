@@ -14,8 +14,6 @@ int main()
         _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
     #endif
 
-    const size_t data_size = 1000 * 1000;
-
     //float* first_tensor_data_array = new float[data_size];
     //float* second_tensor_data_array = new float[data_size];
     //
@@ -26,25 +24,28 @@ int main()
     //}
 
     // Initializing first tensor
-    Tensor* tensor1;
-    float* data1 = new float[4];
-    int* shape1 = new int[2] { 2, 2 };
-    int ndim1 = 2;
 
-    // Initializing second tensor
-    Tensor* tensor2;
-    float* data2 = new float[4];
-    int* shape2 = new int[2] { 2, 2 };
-    int ndim2 = 2;
+    const int size = 10000;
 
-    // Result tensor
-    Tensor* result_tensor;
+    Tensor::arange(0, 1000 * 1000000, "cuda");
 
-    tensor1 = new Tensor(data1, shape1, ndim1, "cuda");
-    tensor2 = new Tensor(data2, shape2, ndim2, "cuda");
-    result_tensor = Tensor::add_tensors(tensor1, tensor2);
-
-    int a = 0;
+    //Tensor* tensor1;
+    //float* data1 = new float[4];
+    //int* shape1 = new int[2] { 2, 2 };
+    //int ndim1 = 2;
+    //
+    //// Initializing second tensor
+    //Tensor* tensor2;
+    //float* data2 = new float[4];
+    //int* shape2 = new int[2] { 2, 2 };
+    //int ndim2 = 2;
+    //
+    //// Result tensor
+    //Tensor* result_tensor;
+    //
+    //tensor1 = new Tensor(data1, shape1, ndim1, "cuda");
+    //tensor2 = new Tensor(data2, shape2, ndim2, "cuda");
+    //result_tensor = Tensor::add_tensors(tensor1, tensor2);
 
     /*std::vector<float> data_vector;
 

@@ -183,6 +183,7 @@ PYBIND11_MODULE(PythonWrapper, m)
         .def("__getitem__", &python_get_item);
 
     m.def("add", &Tensor::add_tensors);
+    m.def("arange", &Tensor::arange, py::arg("start") = 0, py::arg("end"), py::arg("device") = "cpu");
 
     /////////////////////////////
     // Cuda
