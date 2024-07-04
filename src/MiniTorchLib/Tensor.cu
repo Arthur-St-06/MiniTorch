@@ -28,6 +28,10 @@ Tensor::Tensor(floatX* _data, int* _shape, int _ndim, std::string _device)
     {
         data = data_to_cuda(data);
     }
+    else if (_device == "cpu" && check_pointer_location(data) == "cuda")
+    {
+        data = data_to_cpu(data);
+    }
 
     // Allocate memory for strides which has "ndim" elements
     strides = new int[ndim];

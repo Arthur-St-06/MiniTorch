@@ -47,13 +47,11 @@ int main()
     double execution_time = timeit(Tensor::add_tensors, tensor1, tensor2);
     printf("Average execution time: %d microseconds", execution_time);
 
-    /*std::vector<float> data_vector;
-    * 
-    * 
     Tensor* res_tensor = Tensor::add_tensors(tensor1, tensor2);
     res_tensor = res_tensor->to("cpu");
     int a = 0;
 
+    /*std::vector<float> data_vector;
     for (size_t i = 0; i < data_size; i++)
     {
         data_vector.push_back(i);
