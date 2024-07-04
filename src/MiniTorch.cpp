@@ -1,6 +1,6 @@
 #include <iostream>
 #include "MiniTorchLib/Tensor.h"
-#include <chrono>
+#include "MiniTorchLib/helper_functions.h"
 
 // Check for memory leaks in debug mode
 #ifdef _DEBUG
@@ -27,27 +27,32 @@ int main()
 
     const int size = 10000;
 
-    Tensor::arange(0, 1000 * 1000000, "cuda");
+    Tensor* tensor1;
+    floatX* data1 = new floatX[4];
+    int* shape1 = new int[2] { 2, 2 };
+    int ndim1 = 2;
+    
+    // Initializing second tensor
+    Tensor* tensor2;
+    floatX* data2 = new floatX[4];
+    int* shape2 = new int[2] { 2, 2 };
+    int ndim2 = 2;
+    
+    // Result tensor
+    Tensor* result_tensor;
+    
+    tensor1 = Tensor::arange(0, 1000 * 100, "cuda");
+    tensor2 = Tensor::arange(0, 1000 * 100, "cuda");
 
-    //Tensor* tensor1;
-    //float* data1 = new float[4];
-    //int* shape1 = new int[2] { 2, 2 };
-    //int ndim1 = 2;
-    //
-    //// Initializing second tensor
-    //Tensor* tensor2;
-    //float* data2 = new float[4];
-    //int* shape2 = new int[2] { 2, 2 };
-    //int ndim2 = 2;
-    //
-    //// Result tensor
-    //Tensor* result_tensor;
-    //
-    //tensor1 = new Tensor(data1, shape1, ndim1, "cuda");
-    //tensor2 = new Tensor(data2, shape2, ndim2, "cuda");
-    //result_tensor = Tensor::add_tensors(tensor1, tensor2);
+    double execution_time = timeit(Tensor::add_tensors, tensor1, tensor2);
+    printf("Average execution time: %d microseconds", execution_time);
 
     /*std::vector<float> data_vector;
+    * 
+    * 
+    Tensor* res_tensor = Tensor::add_tensors(tensor1, tensor2);
+    res_tensor = res_tensor->to("cpu");
+    int a = 0;
 
     for (size_t i = 0; i < data_size; i++)
     {

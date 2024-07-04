@@ -1,6 +1,6 @@
 #include "cpu_kernels.h"
 
-void add_cpu(float* _data1, float* _data2, float* _result_data, int _size)
+void add_cpu(floatX* _data1, floatX* _data2, floatX* _result_data, int _size)
 {
 #pragma omp parallel for
     for (int i = 0; i < _size; i++)
@@ -9,7 +9,7 @@ void add_cpu(float* _data1, float* _data2, float* _result_data, int _size)
     }
 }
 
-void arange_cpu(float* _data, int _start, int _size)
+void arange_cpu(floatX* _data, int _start, int _size)
 {
 #pragma omp parallel for
     for (int i = 0; i < _size; i++)

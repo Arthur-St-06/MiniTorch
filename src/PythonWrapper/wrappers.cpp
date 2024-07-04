@@ -3,11 +3,12 @@
 
 #include "../MiniTorchLib/Tensor.h"
 #include "../MiniTorchLib/cuda_support.h"
-#include "../MiniTorchLib/errors_support.h"
+#include "../MiniTorchLib/common.h"
+#include "../MiniTorchLib/cuda_common.h"
 
 namespace py = pybind11;
 
-float python_get_item(Tensor& t, py::object obj_indicies)
+floatX python_get_item(Tensor& t, py::object obj_indicies)
 {
     // If index is a single number e.g. [0]
     if (py::isinstance<py::int_>(obj_indicies))
@@ -68,7 +69,7 @@ int count_elements(const py::list& list)
     return total;
 }
 
-void flatten_list(const py::list& _list, float* _data, int& _index)
+void flatten_list(const py::list& _list, floatX* _data, int& _index)
 {
     for (const auto& item : _list)
     {
@@ -80,7 +81,7 @@ void flatten_list(const py::list& _list, float* _data, int& _index)
         {
             if (py::isinstance<py::float_>(item) || py::isinstance<py::int_>(item))
             {
-                _data[_index++] = item.cast<float>();
+                _data[_index++] = item.cast<floatX>();
             }
             else
             {
@@ -141,7 +142,7 @@ void get_shape(const py::list& _list, std::vector<int>& _shape)
 Tensor* tensor_initializer(const py::list& list, std::string device)
 {
     int num_elements = count_elements(list);
-    float* data = new float[num_elements];
+    floatX* data = new floatX[num_elements];
 
     int index = 0;
     flatten_list(list, data, index);

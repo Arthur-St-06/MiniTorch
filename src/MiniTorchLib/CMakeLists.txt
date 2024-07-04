@@ -9,7 +9,9 @@ set(MiniTorchLib_Src
 	cuda_support.cu
 	cuda_kernels.h
 	cuda_kernels.cu
-	errors_support.h
+	common.h
+	cuda_common.h
+	helper_functions.h
 )
 
 add_library(MiniTorchLib ${MiniTorchLib_Src})

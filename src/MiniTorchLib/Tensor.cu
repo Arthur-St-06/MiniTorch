@@ -3,11 +3,12 @@
 #include "Tensor.h"
 #include "cpu_kernels.h"
 #include "cuda_kernels.h"
-#include "errors_support.h"
+#include "common.h"
 
-#define THREADS_PER_BLOCK 64*100000
 
-Tensor::Tensor(float* _data, int* _shape, int _ndim, std::string _device)
+#define THREADS_PER_BLOCK 64
+
+Tensor::Tensor(floatX* _data, int* _shape, int _ndim, std::string _device)
 {
     //throw py::value_error("Creating a tensor");
     shape = _shape;
@@ -84,8 +85,8 @@ Tensor* Tensor::add_tensors(Tensor* _tensor1, Tensor* _tensor2)
 
     if (device == "cuda")
     {
-        float* data;
-        cuda_check(cudaMalloc((void**)&data, _tensor1->size * sizeof(float)));
+        floatX* data;
+        cuda_check(cudaMalloc((void**)&data, _tensor1->size * sizeof(floatX)));
 
         int num_blocks = (_tensor1->size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         add_cuda << <num_blocks, THREADS_PER_BLOCK >> > (_tensor1->data, _tensor2->data, data, _tensor1->size);
@@ -96,7 +97,7 @@ Tensor* Tensor::add_tensors(Tensor* _tensor1, Tensor* _tensor2)
     }
     else
     {
-        float* data = new float[_tensor1->size];
+        floatX* data = new floatX[_tensor1->size];
         add_cpu(_tensor1->data, _tensor2->data, data, _tensor1->size);
         return new Tensor(data, shape, ndim, device);
     }
@@ -115,8 +116,8 @@ Tensor* Tensor::arange(int _start, int _end, std::string _device)
 
     if (_device == "cuda")
     {
-        float* data;
-        cuda_check(cudaMalloc((void**)&data, size * sizeof(float)));
+        floatX* data;
+        cuda_check(cudaMalloc((void**)&data, size * sizeof(floatX)));
 
         int num_blocks = (size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         arange_cuda << <num_blocks, THREADS_PER_BLOCK >> > (data, start, size);
@@ -125,13 +126,13 @@ Tensor* Tensor::arange(int _start, int _end, std::string _device)
     }
     else
     {
-        float* data = new float[size];
+        floatX* data = new floatX[size];
         arange_cpu(data, start, size);
         return new Tensor(data, shape, 1, device);
     }
 }
 
-float Tensor::get_item(int* _indicies)
+floatX Tensor::get_item(int* _indicies)
 {
     // Convert n-dimensional indicies to 1 index to be used with a 1d array
     int index = 0;
@@ -145,10 +146,10 @@ float Tensor::get_item(int* _indicies)
         throw_error("Index should be less than the size of tensor and greater than 0, current index and size are: %d, %d\n", index, size);
     }
 
-    float result;
+    floatX result;
     if (device == "cuda")
     {
-        float* tmp_cpu_data = data_to_cpu(data, false);
+        floatX* tmp_cpu_data = data_to_cpu(data, false);
         result = tmp_cpu_data[index];
         delete[] tmp_cpu_data;
     }
@@ -173,23 +174,21 @@ Tensor* Tensor::to(std::string _device)
     return this;
 }
 
-float* Tensor::data_to_cuda(float* _data)
+floatX* Tensor::data_to_cuda(floatX* _data)
 {
-    float* cuda_data;
-    cuda_check(cudaMalloc((void**)&cuda_data, size * sizeof(float)));
-    cuda_check(cudaMemcpy(cuda_data, _data, size * sizeof(float), cudaMemcpyHostToDevice));
+    floatX* cuda_data;
+    cuda_check(cudaMalloc((void**)&cuda_data, size * sizeof(floatX)));
+    cuda_check(cudaMemcpy(cuda_data, _data, size * sizeof(floatX), cudaMemcpyHostToDevice));
 
     delete[] _data;
-
-    printf("sent tensor to %s\n", device.c_str());
 
     return cuda_data;
 }
 
-float* Tensor::data_to_cpu(float* _data, bool _delete_original)
+floatX* Tensor::data_to_cpu(floatX* _data, bool _delete_original)
 {
-    float* cpu_data = new float[size];
-    cuda_check(cudaMemcpy(cpu_data, _data, size * sizeof(float), cudaMemcpyDeviceToHost));
+    floatX* cpu_data = new floatX[size];
+    cuda_check(cudaMemcpy(cpu_data, _data, size * sizeof(floatX), cudaMemcpyDeviceToHost));
     if (_delete_original)
     {
         cuda_check(cudaFree(_data));
