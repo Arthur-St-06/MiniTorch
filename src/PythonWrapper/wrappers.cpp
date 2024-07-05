@@ -181,7 +181,8 @@ PYBIND11_MODULE(PythonWrapper, m)
         .def_readwrite("size", &Tensor::size)
         .def_readwrite("device", &Tensor::device)
         .def("to", &Tensor::to)
-        .def("__getitem__", &python_get_item);
+        .def("__getitem__", &python_get_item)
+        .def("__repr__", &Tensor::to_string);
 
     m.def("add", &Tensor::add_tensors);
     m.def("arange", &Tensor::arange, py::arg("start") = 0, py::arg("end"), py::arg("device") = "cpu");

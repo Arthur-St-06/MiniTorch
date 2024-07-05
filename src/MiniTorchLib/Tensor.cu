@@ -58,8 +58,6 @@ Tensor::~Tensor()
 
     delete[] strides;
     delete[] shape;
-
-    std::cout << "Tensor was deleted" << std::endl;
 }
 
 Tensor* Tensor::add_tensors(Tensor* _tensor1, Tensor* _tensor2)
@@ -176,6 +174,62 @@ Tensor* Tensor::to(std::string _device)
         return new Tensor(data, shape, ndim, "cpu");
     }
     return this;
+}
+
+std::string Tensor::to_string()
+{
+    std::string result;
+    result += "tensor(";
+    // Set indent level to num of characters in "tensor("
+    result += print_data(0, 0, 7);
+    result += ", device='" + device + "'";
+    result += ")";
+    return result;
+}
+
+std::string Tensor::print_data(int _dim, int _offset, int _indentLevel)
+{
+    std::string result;
+    if (_dim == ndim - 1) {
+        // Print the innermost dimension (base case)
+        result += "[";
+        for (int i = 0; i < shape[_dim]; ++i) {
+            if (device == "cuda")
+            {
+                floatX* cpu_data = new floatX;
+                cuda_check(cudaMemcpy(cpu_data, &data[_offset + i], sizeof(floatX), cudaMemcpyDeviceToHost));
+                result += std::to_string(*cpu_data);
+                delete cpu_data;
+            }
+            else
+            {
+                result += std::to_string(data[_offset + i]);
+            }
+            if (i != shape[_dim] - 1) {
+                result += ", ";
+            }
+        }
+        result += "]";
+    }
+    else {
+        // Recursively print each slice of the current dimension
+        result += "[";
+        size_t stride = 1;
+        for (size_t i = _dim + 1; i < ndim; ++i) {
+            stride *= shape[i];
+        }
+        for (int i = 0; i < shape[_dim]; ++i) {
+            if (i != 0) {
+                result += "\n" + std::string(_indentLevel + 1, ' ');
+            }
+            result += print_data(_dim + 1, _offset + i * stride, _indentLevel + 1);
+            if (i != shape[_dim] - 1) {
+                result += ",";
+            }
+        }
+        result += "]";
+    }
+    return result;
 }
 
 floatX* Tensor::data_to_cuda(floatX* _data)

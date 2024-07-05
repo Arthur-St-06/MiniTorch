@@ -28,24 +28,27 @@ int main()
     const int size = 10000;
 
     Tensor* tensor1;
-    floatX* data1 = new floatX[4];
-    int* shape1 = new int[2] { 2, 2 };
-    int ndim1 = 2;
+    floatX* data1 = new floatX[8]{ 1, 2, 3, 4, 5, 6, 7, 8 };
+    int* shape1 = new int[3] { 2, 2, 2 };
+    int ndim1 = 3;
+
+    tensor1 = new Tensor(data1, shape1, ndim1, "cuda");
+    std::cout << tensor1->to_string();
     
     // Initializing second tensor
     Tensor* tensor2;
-    floatX* data2 = new floatX[4];
+    floatX* data2 = new floatX[4]{ 1, 2, 3, 4 };
     int* shape2 = new int[2] { 2, 2 };
     int ndim2 = 2;
     
     // Result tensor
     Tensor* result_tensor;
     
-    tensor1 = Tensor::arange(0, 1000 * 100, "cuda");
-    tensor2 = Tensor::arange(0, 1000 * 100, "cuda");
+    tensor1 = Tensor::arange(0, 10, "cpu");
+    tensor2 = Tensor::arange(0, 10, "cpu");
 
     double execution_time = timeit(Tensor::add_tensors, tensor1, tensor2);
-    printf("Average execution time: %d microseconds", execution_time);
+    printf("Average execution time: %f microseconds\n", execution_time);
 
     Tensor* res_tensor = Tensor::add_tensors(tensor1, tensor2);
     res_tensor = res_tensor->to("cpu");

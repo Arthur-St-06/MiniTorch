@@ -5,6 +5,14 @@
 #include <string>
 
 /////////////////////////////
+// For raising exceptions in python
+/////////////////////////////
+#ifdef USE_PYTHON
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+#endif
+
+/////////////////////////////
 // Precision settings
 /////////////////////////////
 
@@ -13,7 +21,7 @@ typedef float floatX;
 #elif defined(ENABLE_FP16)
 typedef half floatX;
 #else
-typedef __nv_bfloat16 floatX;
+typedef float floatX;
 #endif
 
 /////////////////////////////

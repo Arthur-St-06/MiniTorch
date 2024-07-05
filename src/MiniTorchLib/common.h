@@ -1,6 +1,8 @@
 #pragma once
 
+/////////////////////////////
 // For raising exceptions in python
+/////////////////////////////
 #ifdef USE_PYTHON
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
