@@ -25,10 +25,10 @@ public:
     floatX get_item(int* _indicies);
     Tensor* to(std::string _device);
 
-    std::string to_string();
+    std::string tensor_to_string();
     
 private:
-    std::string print_data(int _dim, int _offset, int _indentLevel);
+    std::string data_to_string(int _dim, int _offset, int _indentLevel);
 
     floatX* data_to_cuda(floatX* _data);
     // _delete_original = false prevents data deletion on cuda (needed if copying for printing)

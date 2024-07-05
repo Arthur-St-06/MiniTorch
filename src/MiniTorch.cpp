@@ -1,4 +1,5 @@
 #include <iostream>
+#include <random>
 #include "MiniTorchLib/Tensor.h"
 #include "MiniTorchLib/helper_functions.h"
 
@@ -13,6 +14,11 @@ int main()
     #ifdef _DEBUG
         _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
     #endif
+
+        //std::mt19937 generator(1337);  // mt19937 is a standard mersenne_twister_engine seeded with 1337
+        //std::uniform_int_distribution<int> distribution(1, 100);
+        //int random_number = distribution(generator);
+        //std::cout << "Random Number: " << random_number << std::endl;
 
     //float* first_tensor_data_array = new float[data_size];
     //float* second_tensor_data_array = new float[data_size];
@@ -33,7 +39,7 @@ int main()
     int ndim1 = 3;
 
     tensor1 = new Tensor(data1, shape1, ndim1, "cuda");
-    std::cout << tensor1->to_string();
+    std::cout << tensor1->tensor_to_string();
     
     // Initializing second tensor
     Tensor* tensor2;

@@ -21,7 +21,7 @@ typedef float floatX;
 #elif defined(ENABLE_FP16)
 typedef half floatX;
 #else
-typedef float floatX;
+typedef __nv_bfloat16 floatX;
 #endif
 
 /////////////////////////////

@@ -176,18 +176,18 @@ Tensor* Tensor::to(std::string _device)
     return this;
 }
 
-std::string Tensor::to_string()
+std::string Tensor::tensor_to_string()
 {
     std::string result;
     result += "tensor(";
     // Set indent level to num of characters in "tensor("
-    result += print_data(0, 0, 7);
+    result += data_to_string(0, 0, 7);
     result += ", device='" + device + "'";
     result += ")";
     return result;
 }
 
-std::string Tensor::print_data(int _dim, int _offset, int _indentLevel)
+std::string Tensor::data_to_string(int _dim, int _offset, int _indentLevel)
 {
     std::string result;
     if (_dim == ndim - 1) {
@@ -196,14 +196,30 @@ std::string Tensor::print_data(int _dim, int _offset, int _indentLevel)
         for (int i = 0; i < shape[_dim]; ++i) {
             if (device == "cuda")
             {
-                floatX* cpu_data = new floatX;
-                cuda_check(cudaMemcpy(cpu_data, &data[_offset + i], sizeof(floatX), cudaMemcpyDeviceToHost));
+                __nv_bfloat16* cpu_data = new __nv_bfloat16;
+                cuda_check(cudaMemcpy(cpu_data, &data[_offset + i], sizeof(__nv_bfloat16), cudaMemcpyDeviceToHost));
+
+#if defined(ENABLE_FP32)
                 result += std::to_string(*cpu_data);
+#elif defined(ENABLE_FP16)
+                result += std::to_string(__half2float(*cpu_data));
+#else
+                result += std::to_string(__bfloat162float(*cpu_data));
+#endif
+                
                 delete cpu_data;
             }
             else
             {
+#if defined(ENABLE_FP32)
                 result += std::to_string(data[_offset + i]);
+#elif defined(ENABLE_FP16)
+                result += std::to_string(__half2float(data[_offset + i]));
+#else
+                result += std::to_string(__bfloat162float(data[_offset + i]));
+#endif
+
+                
             }
             if (i != shape[_dim] - 1) {
                 result += ", ";
@@ -222,7 +238,7 @@ std::string Tensor::print_data(int _dim, int _offset, int _indentLevel)
             if (i != 0) {
                 result += "\n" + std::string(_indentLevel + 1, ' ');
             }
-            result += print_data(_dim + 1, _offset + i * stride, _indentLevel + 1);
+            result += data_to_string(_dim + 1, _offset + i * stride, _indentLevel + 1);
             if (i != shape[_dim] - 1) {
                 result += ",";
             }
