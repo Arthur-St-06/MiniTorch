@@ -206,7 +206,6 @@ std::string Tensor::data_to_string(int _dim, int _offset, int _indentLevel)
 #else
                 result += std::to_string(__bfloat162float(*cpu_data));
 #endif
-                
                 delete cpu_data;
             }
             else
@@ -218,8 +217,6 @@ std::string Tensor::data_to_string(int _dim, int _offset, int _indentLevel)
 #else
                 result += std::to_string(__bfloat162float(data[_offset + i]));
 #endif
-
-                
             }
             if (i != shape[_dim] - 1) {
                 result += ", ";

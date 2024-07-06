@@ -12,6 +12,9 @@ set(MiniTorchLib_Src
 	common.h
 	cuda_common.h
 	helper_functions.h
+	rand.h
+	nn_init.h
+	nn_init.cpp
 )
 
 add_library(MiniTorchLib ${MiniTorchLib_Src})

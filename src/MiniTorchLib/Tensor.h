@@ -2,7 +2,6 @@
 
 #include <cuda_runtime.h>
 #include <iostream>
-#include <vector>
 #include <iomanip> // For std::setw
 #include "cuda_common.h"
 

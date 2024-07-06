@@ -2,6 +2,7 @@
 #include <random>
 #include "MiniTorchLib/Tensor.h"
 #include "MiniTorchLib/helper_functions.h"
+#include "MiniTorchLib/nn_init.h"
 
 // Check for memory leaks in debug mode
 #ifdef _DEBUG
@@ -15,19 +16,15 @@ int main()
         _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
     #endif
 
-        //std::mt19937 generator(1337);  // mt19937 is a standard mersenne_twister_engine seeded with 1337
-        //std::uniform_int_distribution<int> distribution(1, 100);
-        //int random_number = distribution(generator);
-        //std::cout << "Random Number: " << random_number << std::endl;
-
-    //float* first_tensor_data_array = new float[data_size];
-    //float* second_tensor_data_array = new float[data_size];
-    //
-    //for (size_t i = 0; i < data_size; i++)
-    //{
-    //    first_tensor_data_array[i] = static_cast<float>(i);
-    //    second_tensor_data_array[i] = static_cast<float>(i);
-    //}
+        mt19937_state state;
+        manual_seed(&state, 1337);
+        
+        float t8[800];
+        nn::init* init = new nn::init();
+        init->normal_(t8, 800, 0, 0.02, &state);
+        for (int i = 0; i < 800; i++) {
+            printf("%f\n", t8[i]);
+        }
 
     // Initializing first tensor
 
